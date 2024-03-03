@@ -30,6 +30,6 @@ jobs:
 
     - name: Merge changes from upstream/main to main
       run: |
-        git checkout main
-        git merge upstream/main
-        git push origin main
+        git checkout gh-pages
+        git merge upstream/gh-pages
+        git push origin gh-pages
