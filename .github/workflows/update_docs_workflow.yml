@@ -1,0 +1,30 @@
+name: Update Documentation Workflow
+
+on:
+  push:
+    branches:
+      - gh-pages
+
+jobs:
+  update_docs:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v2
+      
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.8'
+        
+    - name: Update Documentation
+      run: python docs_creator.py
+      
+    - name: Commit and Push Changes
+      run: |
+        git config --global user.email "guy.duer@firebolt.io"
+        git config --global user.name "GitHub Actions"
+        git add .
+        git commit -m "Update all_docs.txt" -a || echo "No changes to commit"
+        git push
