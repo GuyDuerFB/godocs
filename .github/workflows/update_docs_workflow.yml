@@ -21,7 +21,7 @@ jobs:
     - name: Install Dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install gitpython  # Ensure gitpython is installed for the script
+        pip install requests gitpython  # Ensure gitpython is installed for the script
         
     - name: Create and Update all_docs.txt
       env:
