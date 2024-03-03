@@ -3,7 +3,7 @@ name: Update Documentation Workflow
 on:
   push:
     branches:
-      - gh-pages
+      - gh-pages 
 
 jobs:
   update_docs:
@@ -18,13 +18,23 @@ jobs:
       with:
         python-version: '3.8'
         
-    - name: Update Documentation
-      run:  python scripts/update_docs.py
-      
-    - name: Commit and Push Changes
+    - name: Install Dependencies
       run: |
-        git config --global user.email "guy.duer@firebolt.io"
+        python -m pip install --upgrade pip
+        pip install gitpython  # Ensure gitpython is installed for the script
+        
+    - name: Create and Update all_docs.txt
+      env:
+        GENERAL_TOKEN: ${{ secrets.GENERAL_TOKEN }}  # Using the GENERAL_TOKEN secret for GitHub API authentication
+      run: python scripts/update_docs.py
+      # Adjust the file path as necessary, assuming the script is at the root
+
+    - name: Commit and Push Changes
+      env:
+        GENERAL_TOKEN: ${{ secrets.GENERAL_TOKEN }}
+      run: |
+        git config --global user.email "actions@github.com"
         git config --global user.name "GitHub Actions"
-        git add .
-        git commit -m "Update all_docs.txt" -a || echo "No changes to commit"
+        git add all_docs.txt
+        git commit -m "Update all_docs.txt with latest documentation" || echo "No changes to commit"
         git push
