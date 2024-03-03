@@ -19,7 +19,7 @@ jobs:
         python-version: '3.8'
         
     - name: Update Documentation
-      run:  python /scripts/sync_docs_and_comapre.py
+      run:  python /scripts/update_docs.py
       
     - name: Commit and Push Changes
       run: |
