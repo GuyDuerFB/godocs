@@ -20,11 +20,13 @@ def clone_source_repo():
     Repo.clone_from(SOURCE_REPO_URL, TEMP_CLONE_DIR)
 
 def clean_content(content):
-    """Remove URLs and special characters from content."""
+    """Remove URLs, HTML tags, and special characters from content."""
     # Remove URLs
     content_no_urls = re.sub(r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', '', content)
-    # Remove special characters, except for basic punctuation
-    content_clean = re.sub(r'[^a-zA-Z0-9\s,.!?-]', '', content_no_urls)
+    # Remove HTML tags
+    content_no_html = re.sub(r'<[^>]+>', '', content_no_urls)
+    # Remove special characters, except for basic punctuation and underscores
+    content_clean = re.sub(r'[^a-zA-Z0-9\s,._!?-]', '', content_no_html)
     return content_clean
 
 def aggregate_docs_content():
