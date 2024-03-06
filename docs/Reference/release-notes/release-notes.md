@@ -28,7 +28,11 @@ Firebolt might roll out releases in phases. New features and changes may not yet
 
 <!--- FIR-22307 --->**PG compliant division**
 
-LQP2 has a new division operator that is PG compliant, by default. This is a breaking change. 
+LQP2 has a new division operator that is PG compliant, by default. Examples include:
+- division by zero throws now an exception (NULL value before)
+- type overflow throws now an exception (not checked before)
+
+This is a breaking change. 
 
 <!--- FIR-29179 --->**Prevents usage of new line delimeter for schema inference**
 
@@ -39,11 +43,11 @@ An error will now occur if schema inference is used with the option “delimiter
 <!--- FIR-29747 --->**Disabled Unix Time Functions**
 
 The following functions are not supported anymore:
-* 'from_unixtime'
-* 'to_unix_timestamp'
-* 'to_unix_time'
+* `from_unixtime`
+* `to_unix_timestamp`
+* `to_unix_time`
 
-This is a breaking change. 
+For example, a new setting called `disable_firebolt_v1_functions` can now be used to turn off the support for specific functions, such as the unix timestamp functions. This is a breaking change. 
 
 <!--- FIR-27548 --->**Simplified table protobuf representation**
 
@@ -73,16 +77,22 @@ Aggregating index is now placed in the same namespace as tables and views. This 
 
 Firebolt can now process inner and outer joins that exceed the available main memory of the engine by spilling to the the SSD cache when needed. This happens transparently to the user. A query that made use of this capability will populate the `spilled_bytes` column in `information_schema.query_history`.
 
+<!--- FIR-30843 --->**Nullable Tuples Query Speed**
+
+Fixed a correctness issue when using anti joins with nullable tuples. Firebolt now returns correct results for such queries. However, this can lead to less efficient query plans, causing queries with anti joins on tuples to become slower. If the tuples are not nullable, the plans remain the same as before.
+
+If you know that the values cannot be null when performing an anti join on nullable tuples, you can wrap all nullable columns involved in the NOT IN comparison with COALESCE to make them non-nullable, using some default value for the null case. This ensures that Firebolt can still choose an efficient plan while retaining correctness.
+
 ### Resolved issues
 
 <!--- FIR-21152 --->
-* Changed return for division by 0 from null to fail. This is a breaking change. 
+* Changed return for division by 0 from null to fail. Examples include: division by zero now throws an exception (NULL value before) and type overflow now throws an exception (not checked before). This is a breaking change. 
 
 <!--- FIR-18709 --->
 * Updated error log for upload failure for clarity.
 
 <!--- FIR-29147 --->
-* Fixed a bug in 'unnest' table function that occurred when not all of the 'unnest' columns were projected.
+* Fixed a bug in `unnest` table function that occurred when not all of the `unnest` columns were projected.
 
 <!--- FIR-28187 --->
 * Changed the behavior of [`split_part'](../../sql_reference/functions-reference/string/split-part.md) when an empty string is used as delimiter.
@@ -91,4 +101,4 @@ Firebolt can now process inner and outer joins that exceed the available main me
 * Fixed a bug where floating point values `-0.0` and `+0.0`, as well as `-nan` and `+nan` were not considered equal in distributed queries.
 
 <!--- FIR-29759 --->
-* 'TRY_CAST' from 'TEXT' to 'NUMERIC' now works as expected: if the value cannot be parsed as 'NUMERIC' it produces null.
+* `TRY_CAST` from `TEXT` to `NUMERIC` now works as expected: if the value cannot be parsed as 'NUMERIC' it produces null.
