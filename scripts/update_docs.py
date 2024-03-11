@@ -23,11 +23,15 @@ def clone_source_repo():
 
 def clean_content(content):
     """Remove HTML tags and URLs from content using BeautifulSoup."""
-    soup = BeautifulSoup(content, 'lxml')  # Use 'html.parser' if you don't want to use lxml
+    # Use BeautifulSoup to remove HTML tags
+    soup = BeautifulSoup(content, 'lxml')  # or 'html.parser'
     text = soup.get_text(separator=' ', strip=True)
     # Remove URLs
     text_no_urls = re.sub(r'http[s]?://\S+', '', text)
-    return text_no_urls
+    # Remove Markdown headers
+    text_no_md_headers = re.sub(r'#+\s?', '', text_no_urls)
+    
+    return text_no_md_headers
 
 def aggregate_docs_content():
     """Aggregates and cleans the content of all Markdown files."""
@@ -40,7 +44,8 @@ def aggregate_docs_content():
                 with open(file_path, 'r', encoding='utf-8') as md_file:
                     file_content = md_file.read()
                     cleaned_content = clean_content(file_content)
-                    aggregated_content += cleaned_content + "\n\n"
+                    # Append cleaned content with minimal whitespace
+                    aggregated_content += cleaned_content.strip() + "\n"  # One newline for separation
     return aggregated_content
 
 def update_target_file(content):
