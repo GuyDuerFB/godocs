@@ -19,7 +19,7 @@ def clone_source_repo():
     """Clones the source repository."""
     if os.path.exists(TEMP_CLONE_DIR):
         os.system(f'rm -rf {TEMP_CLONE_DIR}')
-    Repo.clone_from(SOURCE_REPO_URL, TEMP_CLONE_DIR, branch='main')  # Adjust the branch if necessary
+    Repo.clone_from(SOURCE_REPO_URL, TEMP_CLONE_DIR, branch='gh-pages')  
 
 def clean_content(content):
     """Remove HTML tags and URLs from content using BeautifulSoup."""
