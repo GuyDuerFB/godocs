@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Python
-description: Learn about using the Python SDK for Firebolt. 
+description: Learn about using the Python SDK for Firebolt.
 nav_order: 2
 parent: Develop with Firebolt
 grand_parent: Guides
