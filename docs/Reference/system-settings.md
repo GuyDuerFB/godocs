@@ -7,16 +7,17 @@ parent: General reference
 ---
 
 # Firebolt system settings
+
 {: .no_toc}
 
 You can use a SET statement in a SQL script to configure aspects of Firebolt system behavior. Each statement is a query in its own right and must be terminated with a semi-colon (;). The SET statement cannot be included in other queries. This topic provides a list of available settings by function.
 
 ## Set time zone
 
-Use this setting to specify the session time zone. Time zone names are from the [tz database](http://www.iana.org/time-zones) (see the [list of tz database time zones](http://en.wikipedia.org/wiki/List_of_tz_database_time_zones)). The default value of the `time_zone` setting is UTC. For times in the future, the latest known rule for the given time zone is applied. Firebolt does not support time zone abbreviations, as they cannot account for daylight savings time transitions, and some time zone abbreviations meant different UTC offsets at different times.
+Use this setting to specify the session time zone. Time zone names are from the [tz database](http://www.iana.org/time-zones) (see the [list of tz database time zones](http://en.wikipedia.org/wiki/List_of_tz_database_time_zones)). For times in the future, the latest known rule for the given time zone is applied. Firebolt does not support time zone abbreviations, as they cannot account for daylight savings time transitions, and some time zone abbreviations meant different UTC offsets at different times. The default value of the `time_zone` setting is UTC. 
 
+### Syntax
 
-### Syntax  
 {: .no_toc}
 
 ```sql
@@ -24,6 +25,7 @@ SET time_zone = '<time_zone>'
 ```
 
 ### Example
+
 {: .no_toc}
 
 ```sql
@@ -40,7 +42,9 @@ SELECT TIMESTAMPTZ '2023-1-29Z';  --> 2023-01-29 02:00:00+02
 
 When set to `true`, strings are parsed without escaping, treating backslashes literally. By default, this setting is enabled. 
 
-### Syntax  
+
+### Syntax
+
 {: .no_toc}
 
 ```sql
@@ -48,19 +52,20 @@ SET standard_conforming_strings = [true|false]
 ```
 
 ### Example
+
 {: .no_toc}
 
 ```sql
 SET standard_conforming_strings = false;
-SELECT '\x3132'; -> 132 
+SELECT '\x3132'; --> 132
 
 SET standard_conforming_strings = true;
-SELECT '\x3132'; -> \x3132
+SELECT '\x3132'; --> \x3132
 ```
 
 ## Limit the number of result rows
 
-When set to a value greater than zero, this setting limits the number of rows returned by `SELECT` statements. The query is executed as if an additional `LIMIT` clause is added to the SQL query. The default value is zero.
+When set to a value greater than zero, this setting limits the number of rows returned by `SELECT` statements. The query is executed as if an additional `LIMIT` clause is added to the SQL query. A value of zero or less means that no limit is applied. By default, no limit to the number of result rows is applied.
 
 ### Syntax
 
@@ -72,13 +77,17 @@ SET max_result_rows = <integer>;
 
 ### Example
 
+{: .no_toc}
+
 ```sql
+-- The following queries all return the same result. For the first query, no
+-- explicit settings are set.
+SELECT * FROM table LIMIT 10000;
+
 SET max_result_rows = 10000;
 SELECT * FROM table;
-```
 
-is equivalent to
+SET max_result_rows = 10000;
+SELECT * FROM table LIMIT 20000;
 
-```sql
-SELECT * FROM table LIMIT 10000;
 ```

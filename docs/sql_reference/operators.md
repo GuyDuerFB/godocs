@@ -9,10 +9,38 @@ parent: SQL reference
 # Operators
 {: .no_toc}
 
+Operators are represented by special characters or keywords, they do not use function call syntax.
+
+## Operator Precedence
+
+The following table lists all SQL operators from highest to lowest precedence, alongside with their associativity.
+The precedence and associativity of the operators is hard-coded into the parser.
+Add parentheses if you want an expression with multiple operators to be interpreted in some other way than what the precedence rules imply.
+
+
+| Operator       | Description                        | Associativity |
+|----------------|------------------------------------|---------------|
+| `.`              | Table/column name separator        | left          |
+| `::`             | Type cast                          | left          |
+| `[]`             | Array element                      | left          |
+| `+` `-`            | Unary plus and minus               | right         |
+| `AT`             | `AT TIME ZONE`                       | left          |
+| `^`              | exponentiation                     | left          |
+| `*` `/` `%`          | multiplication, division, modulo   | left          |
+| `+` `/`            | addition, subtraction              | left          |
+| `\|\|`           | concatenation                      | left          |
+| `BETWEEN`        | range containment                  |               |
+| `LIKE` `ILIKE`    | string matching                    |               |
+| `<` `>` `=` `<=` `>=` `<>` | comparison                         |               |
+| `IS`             | `IS NULL`, `IS DISTINCT FROM`, `IS TRUE` |               |
+| `NOT`            | logical negation                   | right         |
+| `AND`            | logical conjunction                | left          |
+| `OR`             | logical disjunction                | left          |
+
 * Topic ToC
 {:toc}
 
-## :: operator for CAST
+## :: Type cast
 
 Use can use the `::` operator instead of the [CAST](../sql_reference/functions-reference/conditional-and-miscellaneous/cast.md) function to convert one [data type](data-types.md) to another.
 
@@ -42,19 +70,22 @@ SELECT col_a::BIGINT;
 
 ## Arithmetic (numbers)
 
-| Operator | Operator description                             | Example             | Result |
-| :-------- | :------------------------------------------------ | :------------------- | :------ |
-| +        | addition                                         | `SELECT 2 + 3;`     | 5      |
-| -        | subtraction                                      | `SELECT 2 - 3;`     | -1     |
-| \*       | multiplication                                   | `SELECT 2 * 3;`     | 6      |
-| /        | division (integer division truncates the result) | `SELECT 4 / 2;`     | 2      |
-| %        | modulo (remainder)                               | `SELECT 5 % 4;`     | 1      |
-| ^        | exponentiation                                   | `SELECT 2.0 ^ 3.0;` | 8      |
-
-The result data type of arithmetic operators `+`,`-`,`*`,`/` is the common type of the input data types.
-For example: `INTEGER`, `INTEGER <op> BIGINT = BIGINT`, `INTEGER <op> REAL = DOUBLE PRECISION`.
-
-Overflow checks and floating point errors are applied according to the result data type only.
+| Operator | Operator description                             | Input Data Types                                 | Output Data Types  | Example           | Result |
+| :------- | :----------------------------------------------- | :----------------------------------------------- | :----------------- | :---------------- | :----- |
+| +        | addition                                         | INTEGER, BIGINT, NUMERIC, REAL, DOUBLE PRECISION | Corresponding type | `SELECT 2 + 3;`   | 5      |
+| -        | subtraction                                      | INTEGER, BIGINT, NUMERIC, REAL, DOUBLE PRECISION | Corresponding type | `SELECT 2 - 3;`   | -1     |
+| \*       | multiplication                                   | INTEGER, BIGINT, NUMERIC, REAL, DOUBLE PRECISION | Corresponding type | `SELECT 2 * 3;`   | 6      |
+| /        | division (integer division truncates the result) | INTEGER, BIGINT, NUMERIC, REAL, DOUBLE PRECISION | Corresponding type | `SELECT 4 / 2;`   | 2      |
+| %        | modulo (remainder)                               | INTEGER, BIGINT                                  | Corresponding type | `SELECT 5 % 4;`   | 1      |
+| ^        | exponentiation                                   | INTEGER, BIGINT, NUMERIC, REAL, DOUBLE PRECISION | DOUBLE PRECISION   | `SELECT 2 ^ 3.0;` | 8      |
+  
+In arithmetic operations like +, -, *, and / , the result's data type aligns with the most encompassing type of the operands indicated as " Corresponding type" in the table above. For clarity:
+- When both operands are of the same data type (e.g., two INTEGERs or two NUMERICs), the result will also be of that same data type.
+   - `INTEGER <op> INTEGER = INTEGER`
+   - `INTEGER <op> BIGINT = BIGINT` 
+- For operations involving two different numeric data types, the result will typically be of the more precise or larger data type.
+   - `INTEGER <op> REAL = DOUBLE PRECISION`
+- Overflow checks and floating point errors are applied according to the result data type only.
 
 {: .note}
 > Floating point note:
@@ -63,9 +94,9 @@ Overflow checks and floating point errors are applied according to the result da
 >
 > When performing arithmetic, the number of leading digits in the output is the product of the leading digits in both inputs. This means that if either or both of the input numbers are larger than 6, those numbers are the first truncated, and then the arithmetic is performed.
 
-## Boolean
+## Logical
 
-Boolean operators return the result of a Boolean operation between one or more expressions.
+Logical operators return the result of a boolean operation using [three valued logic](https://en.wikipedia.org/wiki/Three-valued_logic)
 
 | Operator | Example   | Explanation                   |
 | :-------- | :--------- | :----------------------------- |
@@ -75,18 +106,20 @@ Boolean operators return the result of a Boolean operation between one or more e
 
 ## Comparison
 
-| Operator              | Syntax                     | Explanation                                                |
-| :-------------------- | :------------------------- | :--------------------------------------------------------- |
-| =                     | `a=b`                      | a is equal to b.                                           |
-| !=                    | `a!=b`                     | a is not equal to b.                                       |
-| <>                    | `a<>b`                     | a is not equal to b.                                       |
-| <=                    | `a<=b`                     | a is less than or equal to b.                              |
-| >                     | `a>b`                      | a is greater than b.                                       |
-| >=                    | `a>=b`                     | a is greater than or equal to b.                           |
-| <                     | `a<b`                      | a is less than b.                                          |
-| BETWEEN               | `a BETWEEN b AND c`        | equivalent to b <= a <= c                                  |
-| IS NOT DISTINCT FROM  | `a IS NOT DISTINCT FROM b` | equivalent to a=b where NULL is considered equal to NULL.  |
-| IS DISTINCT FROM      | `a IS DISTINCT FROM b`     | equivalent to a!=b where NULL is considered equal to NULL. |
+| Operator               | Syntax                     | Explanation                                                |
+|:-----------------------|:---------------------------|:-----------------------------------------------------------|
+| =                      | `a=b`                      | a is equal to b.                                           |
+| !=                     | `a!=b`                     | a is not equal to b.                                       |
+| <>                     | `a<>b`                     | a is not equal to b.                                       |
+| <=                     | `a<=b`                     | a is less than or equal to b.                              |
+| >                      | `a>b`                      | a is greater than b.                                       |
+| >=                     | `a>=b`                     | a is greater than or equal to b.                           |
+| <                      | `a<b`                      | a is less than b.                                          |
+| BETWEEN                | `a BETWEEN b AND c`        | equivalent to b <= a <= c                                  |
+| IS NULL                | `a IS NULL`                | a contains a NULL value                                    |
+| IS NOT NULL            | `a IS NOT NULL`            | a doesn't contain a NULL value                             |
+| IS NOT DISTINCT FROM 	 | `a IS NOT DISTINCT FROM b` | equivalent to a=b where NULL is considered equal to NULL.  |
+| IS DISTINCT FROM       | `a IS DISTINCT FROM b`     | equivalent to a!=b where NULL is considered equal to NULL. |
 
 Example of using comparison operator in `WHERE` clause
 
@@ -98,8 +131,78 @@ FROM
 WHERE
   Price >= 100;
 ```
+## CASE
 
-## INTERVAL for date and time
+Conditional expression similar to if-then-else statements.
+If the result of the condition is true, then the value of the CASE expression is the result that follows the condition.  If the result is false, any subsequent WHEN clauses (conditions) are searched in the same manner.  If no WHEN condition is true, then the value of the case expression is the result specified in the ELSE clause.  If the ELSE clause is omitted and no condition matches, the result is NULL.
+
+### Syntax
+{: .no_toc}
+
+```sql
+CASE
+    WHEN <condition> THEN <result>
+    [ WHEN ...n ]
+    [ ELSE <result> ]
+END;
+```
+
+### Parameters 
+{: .no_toc}
+
+| Parameter     | Description      | Supported input types | 
+| :------------- | :-------------------------- | :--------|
+| `<condition>` | A condition can be defined for each `WHEN`, and `ELSE` clause.   |  `BOOLEAN` | 
+| `<result>`    | The result of any condition. Every `THEN` clause receives a single result. All results in a single `CASE` function must share the same data type. | Any |
+
+### Return type 
+Same data type as `<result>`
+
+### Example
+{: .no_toc}
+
+This example references a table `player_level` with the following columns and values: 
+
+| player              | currentlevel |
+| :-------------------- | :------ |
+| kennethpark         | 3   |
+| esimpson       | 8     |
+| sabrina21 | 11   |
+| rileyjon      | 15    |
+| burchdenise     | 4    |
+
+
+The following example categorizes each entry by length. If the movie is longer than zero minutes and less than 50 minutes it is categorized as SHORT. When the length is 50-120 minutes, it's categorized as Medium, and when even longer, it's categorized as Long.
+
+```sql
+SELECT
+	player,
+	currentlevel,
+	CASE
+		WHEN length > 0
+		AND length <= 5 THEN 'Beginner'
+		WHEN length > 5
+		AND length <= 12 THEN 'Intermediate'
+		WHEN length > 12 THEN 'Expert'
+	END ranking
+FROM
+	player_level
+ORDER BY
+	player;
+```
+
+**Returns**:
+
+| player              | currentlevel | ranking | 
+| :-------------------- | :------ | :-------|
+| kennethpark         | 3   | Beginner | 
+| esimpson       | 8     | Intermediate | 
+| sabrina21 | 11   | Intermediate |
+| rileyjon      | 15    | Expert |
+| burchdenise     | 4    | Beginner | 
+
+
+## Date and time arithmetic 
 
 Use the `INTERVAL` operator to add to or subtract from a period of time in `DATE`, `TIME`, or `TIMESTAMP` data types.
 
@@ -140,13 +243,13 @@ SELECT 'This' || ' is' || ' a' || ' double pipe' || ' concantenation.' AS concat
 
 ## Subquery operators
 
-Subqueries are queries contained within other queries. They are typically used as part of a `WHERE` clause to return entries based on the existence or absence of a condition.
+Subqueries are queries nested within another query. They allow complex data retrieval by enabling a query to filter results based on the outcome of another query. Subquery operators are crucial in constructing these nested queries, especially within the WHERE clause, to filter data based on specific conditions.
 
 | Operator     | Explanation                                                                                                                                        |
 | :------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `EXISTS`     | The `EXISTS` operator is used to check for the existence of any record in a subquery. It returns TRUE if the subquery returns one or more records. |
-| `NOT EXISTS` | The `NOT EXISTS` operator returns TRUE if the underlying subquery returns no record.                                                                 |
-| `IN`         | The `IN` operator is used to check whether a value matches any value in a list.                                                                    |
+| `EXISTS`     | The `EXISTS` operator is used to check for the existence of any record in a subquery. It returns TRUE if the subquery returns one or more records. The subquery within EXISTS is executed repeatedly, once for each row that might be selected by the outer query. If the subquery returns any row, the EXISTS condition is met, and the outer query processing continues for that row. |
+| `NOT EXISTS` | It is opposite of EXISTS and is used to find records in one table that have no related records in another table. If the subquery returns no rows, NOT EXISTS returns TRUE.                                                                |
+| `IN`         | The `IN` operator checks if a specific value is present in a list of values or the results of a subquery. Commonly utilized in a `WHERE` clause, it compares a column's value against a predefined set. When the column's value matches any value in this set, `IN` yields `TRUE`.                                                                    |
 | `NOT IN`     | Retrieve all entries from the value list that don't match the required value.                                                                      |
 
 ### Example&ndash;using EXISTS to find all suppliers with products equal to the price of 22

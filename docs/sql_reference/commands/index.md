@@ -65,6 +65,7 @@ Use the functional list below to find commands for a specific task area that you
 * [DROP NETWORK POLICY](./data-definition/drop-network-policy.md)
 * [DROP TABLE](./data-definition/drop-table.md)
 * [DROP VIEW](./data-definition/drop-view.md)
+* [USE DATABASE](./data-definition/use-database.md)
 
 ## Engines
 
@@ -74,6 +75,7 @@ Use the functional list below to find commands for a specific task area that you
 * [DROP ENGINE](./engines/drop-engine.md)
 * [START ENGINE](./engines/start-engine.md)
 * [STOP ENGINE](./engines/stop-engine.md)
+* [USE ENGINE](./engines/use-engine.md)
 
 ## Metadata
 

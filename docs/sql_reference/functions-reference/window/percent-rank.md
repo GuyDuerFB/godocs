@@ -13,8 +13,6 @@ Calculates the relative rank of the current row within an ordered data set, as
 `( rank - 1 ) / ( rows - 1 )`
 where rank is the current row's rank within the partition, and rows is the number of rows in the partition. PERCENT_RANK always returns values from 0 to 1 inclusive. The first row in any set has a `PERCENT_RANK` of 0. 
 
-See also [CUME_DIST](./cume-dist.md), which returns the cumulative distribution of the current row in relation to other rows in the same partition within an ordered data set. For more information on usage, please refer to [Window Functions](./index.md).
-
 ## Syntax
 {: .no_toc}
 
@@ -28,7 +26,6 @@ PERCENT_RANK() OVER ( [ PARTITION BY <partition_by> ] ORDER BY <order_by> [ASC|D
 | Parameter | Description                                      | Supported input types | 
 | :--------- | :------------------------------------------------ | :------------| 
 | Parameter | Description                                     |
-| `<value>`   | An integer expression used for the `NTILE()` function to specify the number of buckets for division.    | `INTEGER` |
 | `<partition_by>` | An expression used for the partition by clause. | Any |
 | `<order_by>` | An expression used for the order by clause. | Any |
 
@@ -53,13 +50,10 @@ WHERE grade_level=9;
 
 **Returns**:
 
-```sql
-
 | nickname | current_score |    percent_rank     |
 |:------------|:------------|:---------------------|
 | kennethpark   |         90 |                   0 |
 | sabrina21      |         85 |                 0.2 |
 | rileyjon      |         80 |                 0.4 |
 | ymatthews       |         79 |                 0.6 |
-
 

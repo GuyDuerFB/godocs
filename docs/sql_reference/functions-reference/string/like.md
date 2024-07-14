@@ -8,8 +8,7 @@ great_grand_parent: SQL reference
 ---
 
 # LIKE
-
-Allows matching of strings based on comparison to a pattern. `LIKE` is normally used as part of a `WHERE` clause. `LIKE` is case-sensitive; use [ILIKE](ilike.md) for case-insensitive pattern matching.
+The LIKE is used for pattern matching to find similar strings in data. It's often employed in the WHERE clause to filter results based on specific patterns. `LIKE` is case-sensitive; use [ILIKE](ilike.md) for case-insensitive pattern matching.
 
 ## Syntax
 {: .no_toc}
@@ -17,17 +16,17 @@ Allows matching of strings based on comparison to a pattern. `LIKE` is normally 
 ```sql
 <expression> LIKE '<pattern>'
 ```
-## Parameters 
+## Parameters
 {: .no_toc}
 
 | Parameter | Description |Supported input types |
 | :-------- | :---------- | :---------------------|
 | `<expression>` | Any expression that evaluates to `TEXT`. | `TEXT` |
-| `<pattern>` | Specifies the pattern to match (case-sensitive). | Any string. SQL wildcards are supported: <br> <br>* Use an underscore (`_`) to match any single character<br>* Use a percent sign (`%`) to match any number of any characters, including no characters. |
+| `<pattern>` | Specifies the pattern to match (case-sensitive). | `TEXT` constant. SQL wildcards are supported: <br> <br>* Use an underscore (`_`) to match any single character<br>* Use a percent sign (`%`) to match any number of any characters, including no characters. |
 
-## Return Types
-`TEXT`
-                                                                                                                                                
+## Return Type
+`BOOLEAN`
+
 ## Example
 
 Find nicknames from the `players` table that partially match the string "joe" and any following characters as follows:
@@ -66,3 +65,28 @@ FROM
 WHERE
 	nickname LIKE 'Joe%';
 ```
+
+Find nicknames from the `players` table that have a specific pattern:
+
+```sql
+SELECT
+	playerid, nickname, email
+FROM
+	players
+WHERE
+	nickname LIKE '%oe_e%';
+```
+
+The pattern %oe_e% signifies any string that contains "oe" followed by any character (_ acts as a wildcard for a single character) and then "e".
+
+**Returns**
+
+```
++----------+----------+-------------------------+
+| playerid | nickname | email                   |
++----------+----------+-------------------------+
+| 3891     | joel11    | joanncain@example.net  |
+| 4233     | joellong  | millerholly@example.net|
++----------+----------+-------------------------+
+```
+

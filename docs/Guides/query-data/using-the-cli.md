@@ -22,7 +22,7 @@ This topic covers installation, configuration, and running queries. For a list o
 
 ## Prerequisites
 
-* The CLI requires Python version 3.7 or later along with the pip package installer. For more information, see the [Python](https://www.python.org/downloads/) web page.
+* The CLI requires Python version 3.8 or later along with the pip package installer. For more information, see the [Python](https://www.python.org/downloads/) web page.
 
 * You need a Firebolt account and login credentials.
 
@@ -31,7 +31,7 @@ This topic covers installation, configuration, and running queries. For a list o
 * You can use `pip` to install the CLI from the command line as shown in the example below.  
 
   ```
-  $ pip install firebolt-cli
+  $ pip install firebolt-cli==0.*
   ```
 
 * After you run `pip`, verify the installation by checking the `firebolt` version, as shown in the example below.  

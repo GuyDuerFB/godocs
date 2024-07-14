@@ -15,11 +15,27 @@ This topic lists the data types available in Firebolt.
 {:toc}
 
 
-## Binary
+## Numeric
 
-### BYTEA
-Represents variable size binary data. A binary string is a sequence of bytes - unlike TEXT, there is no character set. The `BYTEA` data type is nullable.
-For more information, see [BYTEA data type](bytea-data-type.md).
+### INTEGER
+A whole number ranging from -2,147,483,648 to 2,147,483,647. `INTEGER` data types require 4 bytes of storage.
+Synonyms: `INT`, `INT4`.
+
+### BIGINT
+A whole number ranging from -9,223,372,036,854,775,808 to 9,223,372,036,854,775,807. `BIGINT` data types require 8 bytes of storage.
+Synonyms: `LONG`, `INT8`.
+
+### NUMERIC
+An exact numeric data type defined by its precision (total number of digits) and scale (number of digits to the right of the decimal point). For more information, see [NUMERIC data type](numeric-data-type.md). 
+Synonyms: `DECIMAL`.
+
+### REAL
+A floating-point number that has six decimal-digit precision. Decimal (fixed point) types are not supported. `REAL` data types require 4 bytes of storage.
+Synonyms: `FLOAT4`.
+
+### DOUBLE PRECISION
+A floating-point number that has 15 decimal-digit precision. Decimal (fixed point) types are not supported. `DOUBLE` data types require 8 bytes.
+Synonyms: `DOUBLE`, `FLOAT`, `FLOAT8`, `FLOAT(p)` where 25 <= p <= 53.
 
 ## Boolean
 
@@ -41,27 +57,35 @@ Array columns must be defined with the data type of the array elements, and opti
 For example, the following three queries will create tables with the same nullable `demo_array` column of `TEXT` elements: 
 
   ```sql
-  CREATE DIMENSION TABLE demo1 (
+  CREATE TABLE demo1 (
   demo_array ARRAY(TEXT NULL) 
   );
   
-  CREATE DIMENSION TABLE demo2 (
+  CREATE TABLE demo2 (
   demo_array TEXT[]
   );
 
-  CREATE DIMENSION TABLE demo3 (
+  CREATE TABLE demo3 (
   demo_array TEXT ARRAY 
   );
   ```
 
   You can also specify that an array be NOT NULL, but you must then use the `ARRAY(<data-type> NOT NULL)` syntax.
 
+You can access a specific array element with an array subscript expression: `array_value[index]`.
+The supplied index must be of type `INT` or `BIGINT`.
+An array of n elements starts with `array_value[1]` and ends with `array_value[n]`.
+Array subscript expressions:
+* raise an error if the subscript expression evaluates to a negative number or 0,
+* return NULL if the array is NULL, or if the subscript expression evaluates to NULL or an index larger than the size of the array,
+* return the specific element of the array for subscript expressions evaluating to a number in the range [1, array_size].
+
 #### Example
 {: .no_toc}
 
 The following `CREATE TABLE` statement shows arrays of different element types and different nullabilities.
 ```sql
-CREATE DIMENSION TABLE demo (
+CREATE TABLE demo (
   a_t ARRAY(TEXT NULL) NULL,
   a_i ARRAY(INTEGER NULL) NOT NULL,
   a_d ARRAY(DATE NOT NULL) NULL,
@@ -91,9 +115,7 @@ INSERT INTO demo VALUES
 
 ## Date and timestamp
 
-Firebolt supports three date and timestamp data types:
-
-| Name          | Size    | Minimum                          | Maximum                          | Resolution    |
+| Type          | Size    | Min                              | Max                              | Resolution    |
 | :------------ | :------ | :------------------------------- | :------------------------------- | :------------ |
 | `DATE`        | 4 bytes | `0001-01-01`                     | `9999-12-31`                     | 1 day         |
 | `TIMESTAMP`   | 8 bytes | `0001-01-01 00:00:00.000000`     | `9999-12-31 23:59:59.999999`     | 1 microsecond |
@@ -113,28 +135,6 @@ A year, month, day, hour, minute, second, and microsecond timestamp independent 
 ### TIMESTAMPTZ
 
 A year, month, day, hour, minute, second, and microsecond timestamp associated with a time zone. For more information, see [TIMESTAMPTZ data type](timestamptz-data-type.md).
-
-## Numeric
-
-### INTEGER
-A whole number ranging from -2,147,483,648 to 2,147,483,647. `INTEGER` data types require 4 bytes of storage.
-Synonyms: `INT`, `INT4`.
-
-### NUMERIC
-An exact numeric data type defined by its precision (total number of digits) and scale (number of digits to the right of the decimal point). For more information, see [NUMERIC data type](numeric-data-type.md). 
-Synonyms: `DECIMAL`.
-
-### BIGINT
-A whole number ranging from -9,223,372,036,854,775,808 to 9,223,372,036,854,775,807. `BIGINT` data types require 8 bytes of storage.
-Synonyms: `LONG`, `INT8`.
-
-### REAL
-A floating-point number that has six decimal-digit precision. Decimal (fixed point) types are not supported. `REAL` data types require 4 bytes of storage.
-Synonyms: `FLOAT`, `FLOAT4`.
-
-### DOUBLE PRECISION
-A floating-point number that has 15 decimal-digit precision. Decimal (fixed point) types are not supported. `DOUBLE` data types require 8 bytes.
-Synonyms: `DOUBLE`, `FLOAT8`, `FLOAT(p)` where 25 <= p <= 53.
 
 ## String
 
@@ -165,3 +165,38 @@ Use backslash escape sequences within an escape string literal to represent spec
 Any other character following a backslash is taken literally (e.g., write two backslashes `\\` to include one backslash character).
 The byte sequences you create must be valid UTF-8.
 For historic reasons, if you set the setting `standard_conforming_strings` to `false`, regular string literals will also recognize backslash escape sequences.
+
+## Binary
+
+### BYTEA
+
+Represents variable size binary data. A binary string is a sequence of bytes - unlike TEXT, there is no character set. The BYTEA data type is nullable. For more information, see [BYTEA data type](bytea-data-type.md).
+
+## Type Conversion
+
+Values with a given data type can be converted to another data type. There are three contexts in which this happens:
+* *Explicit*: With an explicit invocation of the [CAST](cast.md) function.
+* *Assignment*: Assigning values to a column of the target data type, as happens in the insert statement.
+* *Implicit*: Using a SQL function where none of the available signatures match the argument types. The planner inserts implicit casts.
+
+The following table lists which type conversions are supported and in which context.
+
+"Explicit", "Assignment", and "Implicit" indicate in which type conversion context the conversion operation can be invoked.
+* "Explicit" means only as an explicit cast (using [CAST](cast.md) or :: syntax).
+* "Assignment" means implicitly in assignment to a target column, as well as explicitly.
+* "Implicit" means implicitly in expressions, as well as the other cases.
+
+| From \ To   | UNKNOWN    | INT        | BIGINT     | REAL       | DOUBLE     | TEXT       | BYTEA      | BOOLEAN    | NUMERIC    | ARRAY      | DATE       | TIMESTAMP  | TIMESTAMPTZ |
+|-------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|-------------|
+| **UNKNOWN**     |      | Implicit   | Implicit   | Implicit   | Implicit   | Implicit   | Implicit   | Implicit   | Implicit   | Implicit   | Implicit   | Implicit   | Implicit    |
+| **INT**        | |      | Implicit   | Implicit   | Implicit   | Assignm. | | Explicit   | Implicit   | | | | |
+| **BIGINT**      | | Assignm. |      | Assignm. | Implicit   | Assignm. | | Explicit   | Implicit   | | | | |
+| **REAL**        | | Assignm. | Assignm. |      | Implicit   | Assignm. | | Explicit   | Assignm.   | | | | |
+| **DOUBLE**      | | Assignm. | Assignm. | Assignm. |      | Assignm. | | Explicit   | Assignm.   | | | | |
+| **TEXT**        | | Assignm. | Assignm. | Assignm. | Assignm. |      | Explicit   | Explicit   | Explicit   | Assignm. | Assignm. | Assignm. | Assignm.  |
+| **BYTEA**       | | | | | | Explicit   |      | | | | | | |
+| **BOOLEAN**     | | Explicit   | | | | Assignm. | |      | | | | | |
+| **NUMERIC**     | | Assignm. | Assignm. | Explicit   | Implicit   | Assignm. | | |  Explicit  | | | | |
+| **DATE**        | | | | | | Assignm. | | | | |      | Implicit   | Implicit    |
+| **TIMESTAMP**   | | | | | | Assignm. | | | | | Implicit   |      | Implicit    |
+| **TIMESTAMPTZ** | | | | | | Assignm. | | | | | Implicit   | Implicit   |       |

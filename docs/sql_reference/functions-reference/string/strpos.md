@@ -5,11 +5,12 @@ description: Reference material for STRPOSR function
 grand_parent: SQL functions
 parent: String functions
 great_grand_parent: SQL reference
+published: true
 ---
 
 # STRPOS
 
-Returns the position (in bytes) of the substring found in the string, starting from 1. The returned value is for the first matching value, and not for any subsequent valid matches.
+Returns the position of the substring found in the string, starting from 1. The returned value is for the first matching value, and not for any subsequent valid matches.
 In case the substring does not exist, functions will return 0.
 
 ## Syntax

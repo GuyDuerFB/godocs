@@ -27,7 +27,7 @@ Managing network policies requires the org_admin role.
 To create a network policy using SQL, use the [`CREATE NETWORK POLICY`](../../sql_reference/commands/data-definition/create-network-policy.md) statement. For example:
 
 ```sql
-CREATE NETWORK POLICY my_network_policy WITH ALLOWED_IP_LIST = (‘4.5.6.1’, ‘2.4.5.1’) BLOCKED_IP_LIST = ('6.7.8.1') DESCRIPTION = 'my new network policy'
+CREATE NETWORK POLICY my_network_policy WITH ALLOWED_IP_LIST = (‘4.5.6.1’, ‘2.4.5.1’) DESCRIPTION = 'my new network policy'
 ```
 
 ### UI
@@ -43,18 +43,18 @@ To create a network policy via the UI:
 
 For each user, the Allowed IPs and Blocked IPs are updated to reflect the total number of IP addresses from each list that you specified for that user. Network policies created in UI are automatically attached to the organization to which the policy creator is logged in. 
 
-## Attach a netwok policy to an organization
+## Attach a network policy to an organization
 
 ### SQL 
 When a network policy is created in UI, it is automatically attached to an organization the creator is logged in to. However, to attach (or detach) a network policy, you can use the command [`ALTER ORGANIZATION`](../../sql_reference/commands/data-definition/alter-organization.md). For example: 
 
 ```sql
-ALTER ORGANIZATION my_organization SET NETWORK_POLICY_NAME = my_network_policy
+ALTER ORGANIZATION my_organization SET NETWORK_POLICY = my_network_policy
 ```
 or to detach: 
 
 ```sql
-ALTER ORGANIZATION my_organization SET NETWORK_POLICY_NAME = DEFAULT
+ALTER ORGANIZATION my_organization SET NETWORK_POLICY = DEFAULT
 ```
 
 ### UI

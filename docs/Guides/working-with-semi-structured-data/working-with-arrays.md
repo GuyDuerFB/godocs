@@ -34,7 +34,7 @@ All examples in this topic are based on the table below, named `visits`. The col
 
 ## Simple array functions
 
-There are several fundamental functions that you can use to work with arrays, including [LENGTH](../../sql_reference/functions-reference/array/length.md), [ARRAY_CONCAT](../../sql_reference/functions-reference/array/array-concat.md), and [FLATTEN](../../sql_reference/functions-reference/array/flatten.md). See the respective reference for a full description. Brief examples are shown below.
+There are several fundamental functions that you can use to work with arrays, including [ARRAY_LENGTH](../../sql_reference/functions-reference/array/array-length.md), [ARRAY_CONCAT](../../sql_reference/functions-reference/array/array-concat.md), and [ARRAY_FLATTEN](../../sql_reference/functions-reference/array/flatten.md). See the respective reference for a full description. Brief examples are shown below.
 
 ### LENGTH example
 {: .no_toc}
@@ -84,23 +84,23 @@ FROM visits;
 +----+------------------------------------------------------------------------------+
 ```
 
-### FLATTEN example
+### ARRAY_FLATTEN example
 {: .no_toc}
 
-`FLATTEN` converts one or more nested arrays into a single array.
+`ARRAY_FLATTEN` converts an ARRAY of ARRAYs into a single flattened ARRAY. Note that this operation flattens only one level of the array hierarchy.
 
 ```sql
-SELECT FLATTEN([ [[1,2,3],[4,5]], [[2]] ]) as flattened_array;
+SELECT ARRAY_FLATTEN([ [[1,2,3],[4,5]], [[2]] ]) as flattened_array;
 ```
 
 **Returns**: 
 
 ```
-+-----------------+
-| flattened_array |
-+-----------------+
-| [1,2,3,4,5,2]   |
-+-----------------+
++---------------------+
+| flattened_array     |
++---------------------+
+| [[1,2,3],[4,5],[2]] |
++---------------------+
 ```
 
 ## Manipulating arrays with Lambda functions
@@ -194,11 +194,13 @@ SELECT
   
 ## UNNEST
 
-You might want to transform a nested array structure to a standard tabular format so that you can expose views to BI tools that can't handle Firebolt array syntax, or you might find the tabular format more natural to query using standard SQL idioms. `UNNEST` serves these purposes.
+You might want to transform a nested array structure to a standard tabular format. `UNNEST` serves this purpose.
 
-[UNNEST](../../sql_reference/commands/queries/select.md#unnest) is part of the [FROM](../../sql_reference/commands/queries/select.md#from) clause and resembles a [JOIN](../../sql_reference/commands/queries/select.md#join). Given an `ARRAY`-typed column, `UNNEST` unfolds the elements of the array and duplicates all other columns found in the `SELECT` clause for each array element.
+[UNNEST](../../sql_reference/commands/queries/select.md#unnest) is a table-valued function (TVF) that transforms an input row containing an array into a set of rows.
+`UNNEST` unfolds the elements of the array and duplicates all other columns found in the `SELECT` clause for each array element.
+If the input array is empty, the corresponding row is eliminated.
 
-A single `UNNEST` acts similarly to `JOIN`. You can use a single `UNNEST` command to unnest several arrays if the arrays are the same length.
+You can use a single `UNNEST` command to unnest several arrays if the arrays are the same length.
 
 Multiple `UNNEST` statements in a single `FROM` clause result in a Cartesian product. Each element in the first array has a record in the result set corresponding to each element in the second array.
 
@@ -208,17 +210,18 @@ The following example unnests the `tags` column from the `visits` table.
 
 ```sql
 SELECT 
-  id, 
-  tags
-FROM visits
-  UNNEST(tags);
+    id, 
+    tag
+FROM 
+    visits,
+    UNNEST(tags) as r(tag);
 ```
 
 **Returns**:
 
 ```
 +----+---------------+
-| id |     tags      |
+| id |     tag       |
 +----+---------------+
 |  1 | "summer-sale" |
 |  1 | "sports"      |
@@ -234,19 +237,18 @@ The following query specifies both the `agent_props_keys` and `agent_props_vals`
 ```sql
 SELECT
     id,
-    a_keys,
-    a_vals
+    a_key,
+    a_val
 FROM
-    visits
-    UNNEST(agent_props_keys as a_keys,
-           agent_props_vals as a_vals)
+    visits,
+    UNNEST(agent_props_keys, agent_props_vals) as r(a_key, a_val);
 ```
 
 **Returns**:
 
 ```
 +----+------------+------------------+
-| id | a_keys     | a_vals           |
+| id | a_key      | a_val            |
 +----+------------+------------------+
 | 1  | agent      | “Mozilla/5.0”    |
 | 1  | platform   | “Windows NT 6.1” |
@@ -263,19 +265,19 @@ The following query, while valid, creates a Cartesian product.
 ```sql
 SELECT
     id,
-    a_keys,
-    a_vals
+    a_key,
+    a_val
 FROM
-    visits
-UNNEST(agent_props_keys as a_keys)
-UNNEST(agent_props_vals as a_vals)
+    visits,
+    UNNEST(agent_props_keys as a_keys) as r1(a_key),
+    UNNEST(agent_props_vals as a_vals) as r2(a_val);
 ```
 
 **Returns**:
 
 ```
 +-----+------------+------------------+
-| INTEGER | a_keys     |   a_values       |
+| id  | a_key      |   a_val          |
 +-----+------------+------------------+
 |   1 | agent      | "Mozilla/5.0"    |
 |   1 | agent      | "Windows NT 6.1" |
@@ -300,9 +302,79 @@ The following query is **invalid** and will result in an error as the `tags` and
 ```sql
 SELECT
     id,
-    tags,
-    a_keys
+    tag,
+    a_key
 FROM
-    visits
-    UNNEST(tags, agent_props_keys as a_keys)
+    visits,
+    UNNEST(tags, agent_props_keys) as r(tag, a_key);
 ```
+
+## ARRAY input and output syntax
+
+`ARRAY` values can be converted from and to `TEXT`. This happens, for example, when an explicit `CAST` is added to a query, or when `ARRAY` values are (de-)serialized in a `COPY` statement.
+
+### Converting ARRAY to TEXT
+
+Broadly, the `TEXT` representation of an `ARRAY` value starts with an opening curly brace (`{`). This is followed by the `TEXT` representations of the individual array elements separated by commas (`,`).
+It ends with a closing curly brace (`}`). `NULL` array elements are represented by the literal string `NULL`. For example, the query
+
+```sql
+SELECT
+    CAST([1,2,3,4,NULL] AS TEXT)
+```
+
+returns the `TEXT` value `'{1,2,3,4,NULL}'`. 
+
+When converting `ARRAY` values containing `TEXT` elements to `TEXT`, some additional rules apply. Specifically, array elements are enclosed by double quotes (`"`) in the following cases:
+
+* The array element is an empty string.
+* The array element contains curly or square braces (`{`,`[`,`]`,`}`), commas (`,`), double quotes (`"`), backslashes (`\`), or white space.
+* The array element matches the word `NULL` (case-insensitively).
+
+Additionally, double quotes and backslashes embedded in array elements will be backslash-escaped. For example, the query
+
+```sql
+SELECT
+    CAST(['1','2','3','4',NULL,'','{impostor,array}','["impostor","array","back\slash"]',' padded and spaced ', 'only spaced', 'null'] AS TEXT)
+```
+
+returns the `TEXT` value `'{1,2,3,4,NULL,"","{impostor,array}","[\"impostor\",\"array\",\"back\\slash\"]"," padded and spaced ","only spaced","null"}'`. 
+
+### Converting TEXT to ARRAY
+
+When converting the `TEXT` representation of an array back to `ARRAY`, the same quoting and escaping rules as above apply. Unquoted whitespace surrounding array elements is trimmed, but whitespace
+contained within array elements is preserved. The array elements themselves are converted according to the conversion rules for the requested array element type. For example, the query
+
+```sql
+SELECT
+    CAST('{1, 2, 3, 4, null, "", "{impostor,array}", "[\"impostor\",\"array\",\"back\\slash\"]", " padded and spaced ", "null",   unquoted padded and spaced   }' AS ARRAY(TEXT))
+```
+
+returns the `ARRAY(TEXT)` value `[1,2,3,4,NULL,'','{impostor,array}','["impostor","array","back\slash"]',' padded and spaced ','null','unquoted padded and spaced']`.
+
+It is also possible to enclose arrays with square braces (`[` and `]`) instead of curly braces (`{` and `}`) when converting from `TEXT` to `ARRAY`. For example, the query
+
+```sql
+SELECT
+    CAST('[1, 2, 3, 4, NULL]' AS ARRAY(INTEGER))
+```
+
+returns the `ARRAY(INTEGER)` value `[1,2,3,4,NULL]`.
+
+### Nested ARRAYs
+
+Finally, the same prodedure applies when converting nested `ARRAY` values from and to `TEXT`. For example, the query
+
+```sql
+SELECT
+    CAST([NULL,[],[NULL],[1,2],[3,4]] AS TEXT)
+```
+
+returns the `TEXT` value `{NULL,{},{1,2},{3,4}}`, and the query
+
+```sql
+SELECT
+    CAST('{NULL,{},{1,2},{3,4}}' AS ARRAY(ARRAY(INTEGER)))
+```
+
+returns the `ARRAY(ARRAY(INTEGER))` value `[NULL,[],[NULL],[1,2],[3,4]]`.

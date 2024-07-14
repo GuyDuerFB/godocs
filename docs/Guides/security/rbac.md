@@ -14,7 +14,7 @@ Role-based access control provides the ability to control permissions and determ
 
 A user interacting with Firebolt must have the appropriate permissions to use an object. Permissions from all roles assigned to a user are considered in each interaction in Firebolt. 
 
-To view all roles, click **Govern** to open the govern space, then choose **Roles** from the menu, or query the [information_schema.applicable-roles](../../sql_reference/information-schema/applicable-roles.md) view.
+To view all roles, click **Govern** to open the govern space, then choose **Roles** from the menu, or query the [information_schema.applicable_roles](../../sql_reference/information-schema/applicable-roles.md) view.
 
 ## System-defined roles
 
@@ -34,7 +34,7 @@ System defined roles can neither be modified nor dropped. Users with the `accoun
 A user with either the `account_admin` or `security_admin` role can create custom roles. You can create a custom role using SQL, or via the UI.  
 
 ## Permissions
-A set of permissions can be granted for every securable object. See which permissions are available for accounts, databases and engines below. To view all permissions, query the [information_schema.object_permissions](../../sql_reference/information-schema/object-privileges.md) view. 
+A set of permissions can be granted for every securable object. See which permissions are available for accounts, databases and engines below. To view all permissions, query the [information_schema.object_privileges](../../sql_reference/information-schema/object-privileges.md) view. 
 
 ### Account
 Permissions can be granted for accounts to allow creating databases and engines.
@@ -164,7 +164,7 @@ To revoke a permission from a role via the UI, follow the [same steps above](#gr
 To revoke a role from a user or another role using SQL, use the [`REVOKE ROLE`](../../sql_reference/commands/access-control/revoke.md) statement. For example:
 
 ```sql
-REVOKE ROLE user_role USER alex;
+REVOKE ROLE user_role FROM USER alex;
 ```
 
 ### UI

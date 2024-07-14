@@ -1,13 +1,13 @@
 ---
 layout: default
-title: GENERATE_SERIES (Beta)
+title: GENERATE_SERIES
 description: Reference material for GENERATE_SERIES function
 grand_parent: SQL functions
 parent: Conditional and miscellaneous functions
 great_grand_parent: SQL reference
 ---
 
-# GENERATE_SERIES (Beta)
+# GENERATE_SERIES
 Generates a single rowset of values from `start` to `stop`, with a step size of `step`. `GENERATE_SERIES` is a table-valued function. 
 
 ## Syntax
@@ -22,14 +22,15 @@ GENERATE_SERIES ( <start>, <stop> [, <step> ] )
 
 | Parameter | Description |Supported input types |
 | :--------- |:------------ |:--------- |
-| `<start>`  | The first value in the interval. | `BIGINT` |
-| `<stop>` | The last value in the interval. <br/>The series stops once the last generated step value exceeds the stop value. |  `BIGINT` |
-| `<step>` | Optional literal integer value to set step. If not included, the default step is 1. | `BIGINT` |
+| `<start>`  | The first value in the interval. | `BIGINT`, `INTEGER` |
+| `<stop>` | The last value in the interval. <br/>The series stops once the last generated step value exceeds the stop value. |  `BIGINT`, `INTEGER` |
+| `<step>` | Optional literal integer value to set step. If not included, the default step is 1. | `BIGINT`, `INTEGER` |
 
 
 ## Return Type
 {: .no_toc}
-`BIGINT`
+
+Setof `INTEGER` if all operands are of type `INTEGER`, otherwise setof `BIGINT`.
 
 
 ## Example
@@ -50,8 +51,3 @@ FROM GENERATE_SERIES(1, 10, 2) s(n)
 | 5 | 2023-02-07 00:00:00 |
 | 7 | 2023-02-09 00:00:00 |
 | 9 | 2023-02-11 00:00:00 |
-
-### Known limitations
-
-`GENERATE_SERIES` is not supported for all queries - unsupported queries will result in the following message: 
-`Planner error: Invalid input error: generate_series() is not supported for this request.`

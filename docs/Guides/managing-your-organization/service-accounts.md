@@ -12,7 +12,7 @@ grand_parent: Guides
 
 Create a service account for programmatic access **only** to Firebolt. Service accounts can be linked to users, instead of logins which provide full access. For each service account, a secret is generated to use for authentication. You can add, edit, delete and generate secrets for service accounts using SQL or in the UI. 
 
-To view all users, click **Govern** to open the govern space, then choose **Service Accounts** from the menu, or query the [information_schema.service_accounts](../../sql_reference/information-schema/service-accounts.md) view. 
+To view all Service Accounts click **Configure**, then choose **Service Accounts**.  
 
 {: .note}
 Managing service accounts requires the org_admin role.
@@ -37,6 +37,7 @@ To create a service account via the UI:
 4. Optionally, you can:
   - Choose a **network policy** to apply from the list of existing [network policies](../security/network-policies.md) configured for your organization. 
   - Specify a description for the service account.
+  - Set the service account as organisation admin, which enables fully managing the organization.
 5. Choose **Create**. 
 
 ## Generating a secret for a service account
@@ -70,12 +71,12 @@ Generating a new secret for your service account user replaces any previous secr
 4. Authenticate using the service account via Firebolt’s REST API, send the following request to receive an authentication token:
 
 ```bash
-curl POST --location 'https://id.app.firebolt.io/oauth/token' \
+curl -X POST --location 'https://id.app.firebolt.io/oauth/token' \
 --header 'Content-Type: application/x-www-form-urlencoded' \
 --data-urlencode 'grant_type=client_credentials' \
 --data-urlencode 'audience=https://api.firebolt.io' \
---data-urlencode 'client_id={service account id}' \
---data-urlencode 'client_secret={service account secret}'
+--data-urlencode "client_id=${service_account_id}" \
+--data-urlencode "client_secret=${service_account_secret}"
 ```
 
 **Response:** # ignore Response
@@ -103,11 +104,7 @@ Use the returned access_token to authenticate with Firebolt.
 To edit a service account using SQL, use the [`ALTER SERVICE ACCOUNT`](../../sql_reference/commands/access-control/alter-service-account.md) statement. For example:
 
 ```sql
-ALTER SERVICE ACCOUNT sa1 SET NETWORK_POLICY_NAME = my_network_policy
-```
-or: 
-```sql
-ALTER SERVICE ACCOUNT sa1 SET IS_ORGANIZATION_ADMIN = true
+ALTER SERVICE ACCOUNT sa1 SET NETWORK_POLICY = my_network_policy
 ```
 
 ### UI 
@@ -130,8 +127,8 @@ DROP SERVICE ACCOUNT sa1;
 To delete a service account via the UI:
 1. Click **Configure** to open the configure space, then choose **Service accounts** from the menu.
 2. Search for the relevant service account using the top search filters, or by scrolling through the list of service accounts. Hover over the right-most column to make the service account menu appear, then choose **Delete service account**.
-
-If the service account is linked to users, you will need to confirm that you will also be deleting those users by choosing **Delete users permanently**.
+{: .note}
+If the service account is linked to any users, deletion will not be permitted. The service account must be unlinked from all users before deletion. 
 
 
 

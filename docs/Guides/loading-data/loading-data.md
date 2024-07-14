@@ -12,12 +12,10 @@ has_toc: false
 
 Loading data into Firebolt is described in the [Getting started tutorial](../getting-started.md) and consists of three steps.
 
-1. Create an *external table* as a connector from Firebolt to your external data source. For more information, see [Working with external tables](working-with-external-tables.md).  
+1. To provide Firebolt with the right permissions to load data from your Amazon S3 bucket, you must create AWS access keys and secret IDs. For instructions on how to create the access key credentials in AWS, see [Creating Access Key and Secret ID](../loading-data/creating-access-keys-aws.md).
 
-  In the table definition, you specify credentials that allow Firebolt to read from the data source. For more information, see [CREATE EXTERNAL TABLE](../../sql_reference/commands/data-definition/create-external-table.md) and [Using AWS roles to access S3](configuring-aws-role-to-access-amazon-s3.md). Data that you ingest must be in an Amazon S3 bucket in the same AWS Region as the Firebolt database. For available Regions, see [Available AWS Regions](../../Reference/available-regions.md).
+2. Using the credentials created above, you can now load your data into Firebolt using the `COPY FROM` command. For information on its syntax and parameters, click [here](../../sql_reference/commands/data-management/copy-from.md).
 
-2. Create a fact or dimension table to store the data in Firebolt to be queried. For more information, see [Working with tables](../../Overview/working-with-tables/working-with-tables.md).  
-
-3. Use an `INSERT` command using a general purpose engine to load data from the external data source into the fact or dimension table. For more information, see [INSERT](../../sql_reference/commands/data-management/insert.md).
+3. Loading data into Firebolt is also performed using external tables. To learn more about how to run the [CREATE EXTERNAL TABLE](../../sql_reference/commands/data-definition/create-external-table.md) command to load your data into Firebolt, see [Work With External Tables](../loading-data/working-with-external-tables.md).
 
 <!-- For information about using Apache Airflow to incrementally load data chronologically, see [Incrementally loading data with Airflow](incrementally-loading-data.md). -->
